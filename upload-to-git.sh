@@ -1,22 +1,24 @@
 #!/bin/bash
-source $(pwd)/commonfuns.sh
-source $(pwd)/commonVars.sh
-
-cd $SCRIPT_PATH
-
-if [ -e "$DEVOPS_REPO" ]; then
- rm -rf  $DEVOPS_REPO
-fi
-
-git clone "$GIT_BASE_URL/${devops_repo}.git"
-ACT_STATUS="$?"
-checkStatus "0" "$ACT_STATUS" "git clone of $GIT_BASE_URL/${devops_repo}.git"
+source $(dirname $0)/commonfuns.sh
+source $(dirname $0)/commonVars.sh
 
 cd $JENKINS_HOME
-git add .
+if [ ! -e '.git' ]; then
+
+ $GIT_PATH init .
+ ACT_STATUS="$?" 
+ checkStatus "0" "$ACT_STATUS" "$GIT_PATH init . Failed"
+ $GIT_PATH remote add origin "$GIT_BASE_URL/${JENKINS_REPO}.git"
+ ACT_STATUS="$?"
+ checkStatus "0" "$ACT_STATUS" "$GIT_PATH remote add origin $GIT_BASE_URL/${JENKINS_REPO}.git"
+fi
+
+$GIT_PATH add .
 ACT_STATUS="$?"
-checkStatus "0" "$ACT_STATUS" "git add"
+checkStatus "0" "$ACT_STATUS" "$GIT_PATH add"
 DATE=$(date +%D:%H:%M:%S)
-git commit -m "commiting jenkins configuration Time : $DATE"
+$GIT_PATH commit -m "commiting jenkins configuration Time : $DATE"
 ACT_STATUS="$?"
-checkStatus "0" "$ACT_STATUS" "git commit to $GIT_BASE_URL/${JENKINS_REPO}.git"
+checkStatus "0" "$ACT_STATUS" "$GIT_PATH commit to $GIT_BASE_URL/${JENKINS_REPO}.git"
+$GIT_PATH push -u origin master
+checkStatus "0" "$ACT_STATUS" "$GIT_PATH push -u origin master"
